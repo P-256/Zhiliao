@@ -61,7 +61,7 @@ Helper.findClass(classLoader, "com.zhihu.android.app.util.", 1, 500,
         XposedBridge.hookMethod(isShowLaunchAd, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
-                if (Helper.prefs.getBoolean("switch_mainswitch", false) && Helper.prefs.getBoolean("switch_launchad", true))  
+                if (Helper.prefs.getBoolean("switch_mainswitch", false) && Helper.prefs.getBoolean("switch_launchad", true))
                     param.setResult(false);
             }
         });
