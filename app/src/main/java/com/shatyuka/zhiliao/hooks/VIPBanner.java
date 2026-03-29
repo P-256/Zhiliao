@@ -41,6 +41,7 @@ public class VIPBanner implements IHook {
             } catch (ClassNotFoundException | NoSuchMethodException ignored2) {
             }
         }
+
         try {
             MoreVipData = classLoader.loadClass("com.zhihu.android.api.MoreVipData");
             NewMoreFragment = classLoader.loadClass("com.zhihu.android.app.ui.fragment.more.more.NewMoreFragment");
@@ -54,6 +55,7 @@ public class VIPBanner implements IHook {
             if (VipEntranceView == null) return;
 
             final String targetClassName = VipEntranceView.getName();
+
             XposedHelpers.findAndHookMethod(View.class, "setVisibility", int.class, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -62,7 +64,17 @@ public class VIPBanner implements IHook {
                     }
                 }
             });
-            
+
+            XposedHelpers.findAndHookMethod(VipEntranceView, "onMeasure", int.class, int.class, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    View v = (View) param.thisObject;
+                    v.setVisibility(View.GONE);
+                    XposedHelpers.callMethod(v, "setMeasuredDimension", 0, 0);
+                    param.setResult(null);
+                }
+            });
+
             XposedHelpers.findAndHookMethod(VipEntranceView, "onAttachedToWindow", new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -81,17 +93,7 @@ public class VIPBanner implements IHook {
                     }
                 }
             });
-
-            XposedHelpers.findAndHookMethod(VipEntranceView, "onMeasure", int.class, int.class, new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    View v = (View) param.thisObject;
-                    v.setVisibility(View.GONE);
-                    XposedHelpers.callMethod(v, "setMeasuredDimension", 0, 0);
-                    param.setResult(null);
-                }
-            });
-
+            
             if (initView != null) {
                 XposedBridge.hookMethod(initView, new XC_MethodReplacement() {
                     @Override
@@ -124,10 +126,12 @@ public class VIPBanner implements IHook {
                     });
                 }
             }
+            XposedHelpers.findAndHookMethod(VipEntranceView, "onClick", View.class, XC_MethodReplacement.returnConstant(null));
+            XposedBridge.hookAllMethods(VipEntranceView, "resetStyle", XC_MethodReplacement.returnConstant(null));
 
             if (MoreVipData != null) {
                 if (NewMoreFragment != null) {
-                    XposedHelpers.findAndHookMethod(NewMoreFragment, "a", MoreVipData, XC_MethodReplacement.returnConstant(null));
+                    XposedBridge.hookAllMethods(NewMoreFragment, "a", XC_MethodReplacement.returnConstant(null));
                 }
                 XposedBridge.hookAllMethods(MoreVipData, "isLegal", XC_MethodReplacement.returnConstant(Boolean.FALSE));
             }
