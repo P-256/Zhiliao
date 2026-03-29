@@ -35,16 +35,21 @@ public class LaunchAd implements IHook {
         if (AdNetworkManager == null) {
             throw new ClassNotFoundException("com.zhihu.android.sdk.launchad.AdNetworkManager");
         }
-        Helper.findClass(classLoader, "com.zhihu.android.app.util.", 1, 500,
-                (Class<?> LaunchAdHelper) -> {
-                    for (Class<?> iface : LaunchAdHelper.getInterfaces()) {
+    Helper.findClass(classLoader, "com.zhihu.android.app.util.", 1, 500,
+                (Class<?> clazz) -> {
+                    for (Class<?> iface : clazz.getInterfaces()) {
                         if (iface.getName().contains("LaunchAdInterface")) {
                             try {
-                                isShowLaunchAd = LaunchAdHelper.getMethod("isShowLaunchAd");
+                                isShowLaunchAd = clazz.getDeclaredMethod("isShowLaunchAd");
                                 return true;
                             } catch (NoSuchMethodException ignored) {}
                         }
                     }
+                    
+                    try {
+                        isShowLaunchAd = clazz.getDeclaredMethod("isShowLaunchAd");
+                        return true;
+                    } catch (NoSuchMethodException ignored) {}
                     return false;
                 });
         if (isShowLaunchAd == null)
@@ -56,7 +61,7 @@ public class LaunchAd implements IHook {
         XposedBridge.hookMethod(isShowLaunchAd, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
-                if (Helper.prefs.getBoolean("switch_mainswitch", false) && Helper.prefs.getBoolean("switch_launchad", true))
+                if (Helper.prefs.getBoolean("switch_mainswitch", false) && Helper.prefs.getBoolean("switch_launchad", true))  
                     param.setResult(false);
             }
         });
