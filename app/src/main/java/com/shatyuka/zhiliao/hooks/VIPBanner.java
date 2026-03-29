@@ -35,13 +35,13 @@ public class VIPBanner implements IHook {
             VipEntranceView = classLoader.loadClass("com.zhihu.android.app.ui.fragment.more.more.widget.VipEntranceView");
             initView = VipEntranceView.getDeclaredMethod("a", Context.class);
         } catch (ClassNotFoundException ignored) {
-            VipEntranceView = classLoader.loadClass("com.zhihu.android.premium.view.VipEntranceView");
             try {
+                VipEntranceView = classLoader.loadClass("com.zhihu.android.premium.view.VipEntranceView");
                 initView_new = VipEntranceView.getDeclaredMethod("initView", Context.class);
-            } catch (NoSuchMethodException e) {
+            } catch (ClassNotFoundException | NoSuchMethodException ignored2) {
             }
         }
-
+        
         try {
             MoreVipData = classLoader.loadClass("com.zhihu.android.api.MoreVipData");
             NewMoreFragment = classLoader.loadClass("com.zhihu.android.app.ui.fragment.more.more.NewMoreFragment");
@@ -52,14 +52,7 @@ public class VIPBanner implements IHook {
     @Override
     public void hook() throws Throwable {
         if (Helper.prefs.getBoolean("switch_mainswitch", false) && Helper.prefs.getBoolean("switch_vipbanner", false)) {
-            XposedBridge.hookAllConstructors(VipEntranceView, new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    View v = (View) param.thisObject;
-                    v.setVisibility(View.GONE);
-                    v.setLayoutParams(new ViewGroup.LayoutParams(0, 0));
-                }
-            });
+            if (VipEntranceView == null) return;
             if (initView != null) {
                 XposedBridge.hookMethod(initView, new XC_MethodReplacement() {
                     @Override
@@ -72,10 +65,6 @@ public class VIPBanner implements IHook {
             }
             if (initView_new != null) {
                 XposedBridge.hookMethod(initView_new, new XC_MethodReplacement() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        ((View) param.thisObject).setVisibility(View.GONE);
-                    }
                     @Override
                     protected Object replaceHookedMethod(MethodHookParam param) {
                         XmlResourceParser layout_vipentranceview = Helper.modRes.getLayout(R.layout.layout_vipentranceview_new);
@@ -90,17 +79,27 @@ public class VIPBanner implements IHook {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             ((View) param.thisObject).setVisibility(View.GONE);
-                            param.setResult(null);
+                            param.setResult(null); 
                         }
                     });
                 }
             }
+            XposedHelpers.findAndHookMethod(VipEntranceView, "onMeasure", int.class, int.class, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    View v = (View) param.thisObject;
+                    v.setVisibility(View.GONE);
+                    v.setMeasuredDimension(0, 0);
+                    param.setResult(null);
+                }
+            });
             XposedHelpers.findAndHookMethod(VipEntranceView, "onClick", View.class, XC_MethodReplacement.returnConstant(null));
             XposedBridge.hookAllMethods(VipEntranceView, "resetStyle", XC_MethodReplacement.returnConstant(null));
 
             if (MoreVipData != null) {
                 if (NewMoreFragment != null) {
-                    XposedHelpers.findAndHookMethod(NewMoreFragment, "a", MoreVipData, XC_MethodReplacement.returnConstant(null));
+                    // 使用 hookAllMethods 应对混淆导致的方法签名变化
+                    XposedBridge.hookAllMethods(NewMoreFragment, "a", XC_MethodReplacement.returnConstant(null));
                 }
                 XposedBridge.hookAllMethods(MoreVipData, "isLegal", XC_MethodReplacement.returnConstant(Boolean.FALSE));
             }
