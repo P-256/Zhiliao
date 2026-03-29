@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ fix_vip_banner ]
 
 jobs:
   build:
@@ -22,9 +22,8 @@ jobs:
         uses: seanmiddleditch/gha-setup-ninja@master
       - name: Retrieve version
         run: |
-          COMMIT_HASH=$(echo ${{ github.event.head_commit.id }} | head -c 7)
           APP_VER_NAME=$(grep '^appVerName=' gradle.properties | cut -d'=' -f2)
-          echo VERSION=${APP_VER_NAME}_${COMMIT_HASH} >> $GITHUB_ENV
+          echo VERSION="26.02.03" >> $GITHUB_ENV
       - name: Write key
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
         run: |
