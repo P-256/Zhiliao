@@ -84,4 +84,3 @@ public class VIPBanner implements IHook {
             }
         }
     }
-}
