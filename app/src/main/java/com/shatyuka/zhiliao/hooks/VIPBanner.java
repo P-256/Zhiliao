@@ -89,7 +89,7 @@ public class VIPBanner implements IHook {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     View v = (View) param.thisObject;
                     v.setVisibility(View.GONE);
-                    v.setMeasuredDimension(0, 0);
+                    XposedHelpers.callMethod(v, "setMeasuredDimension", 0, 0);
                     param.setResult(null);
                 }
             });
