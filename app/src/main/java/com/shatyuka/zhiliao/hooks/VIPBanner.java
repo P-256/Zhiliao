@@ -79,7 +79,7 @@ public class VIPBanner implements IHook {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             ((View) param.thisObject).setVisibility(View.GONE);
-                            param.setResult(null); 
+                            param.setResult(null);
                         }
                     });
                 }
@@ -98,7 +98,6 @@ public class VIPBanner implements IHook {
 
             if (MoreVipData != null) {
                 if (NewMoreFragment != null) {
-                    // 使用 hookAllMethods 应对混淆导致的方法签名变化
                     XposedBridge.hookAllMethods(NewMoreFragment, "a", XC_MethodReplacement.returnConstant(null));
                 }
                 XposedBridge.hookAllMethods(MoreVipData, "isLegal", XC_MethodReplacement.returnConstant(Boolean.FALSE));
